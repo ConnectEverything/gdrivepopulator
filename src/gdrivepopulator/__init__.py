@@ -30,8 +30,8 @@ class Populator:
         log_level = self.config['logging']['level'].get(confuse.Optional(confuse.Choice(logging.getLevelNamesMapping())))
         if log_level is not None:
             logger.setLevel(log_level)
-        service_account_file = self.config['credentials']['path'].as_filename()
-        self.credentials = Credentials.from_service_account_file(service_account_file, scopes=['https://www.googleapis.com/auth/drive'])
+        self.service_account_file = self.config['credentials']['path'].as_filename()
+        self.credentials = Credentials.from_service_account_file(self.service_account_file, scopes=['https://www.googleapis.com/auth/drive'])
         self.credentials.refresh(Request())
         self.service = build('drive', 'v3', credentials=self.credentials)
         self.base_folder_name = self.config['base_name'].get(str)
@@ -161,8 +161,14 @@ class Populator:
         def excluded(f):
             return any(fnmatch(f, exclude) for exclude in excludes)
 
+        def secure_file(f):
+            secure_files = [
+                self.service_account_file,
+            ]
+            return f in secure_files
+
         for f in self._local_files_iter():
-            if matched(f) and not excluded(f):
+            if matched(f) and not excluded(f) and not secure_file(f):
                 logger.info(f'updating {f}')
                 with open(f, 'rb') as fh:
                     gdrive_path = Path(self.base_folder_name, f)
