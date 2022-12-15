@@ -3,7 +3,7 @@
 Replicates text files from local disk to a structure in Google Drive. Intended to be used from a git repo.
 
 # Config
-Looks for a YAML file called .gdrive.yaml in the current working directory. These can be specified or overriden
+Looks for a YAML file called .gdrive.yaml in the current working directory. These can be specified or overridden
 with environment variables
 
 | Config Keys      | Expected values                                          | Environment Variable Name         |
@@ -21,4 +21,4 @@ with environment variables
 | matchers         | list of globs to match to find files to replicate        | GDRIVEPOPULATOR_MATCHERS_0...N    |
 | excludes         | list of globs to match to exclude files from replication | GDRIVEPOPULATOR_EXCLUDES_0...N    |
 
-For a file to be replicated, in must both match a matcher glob and not match any excludes globs.
+For a file to be replicated, it must both match a matcher glob and not match any excludes globs.
