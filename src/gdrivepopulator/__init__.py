@@ -5,6 +5,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
 from enum import Enum
+import json
 from os import scandir
 from fnmatch import fnmatch
 from io import StringIO
@@ -27,11 +28,21 @@ class Populator:
     def __init__(self):
         self.config = confuse.Configuration(__name__, read=False)
         self.config.set_file('.gdrive.yaml')
+        self.config.set_env()
         log_level = self.config['logging']['level'].get(confuse.Optional(confuse.Choice(logging.getLevelNamesMapping())))
         if log_level is not None:
             logger.setLevel(log_level)
-        self.service_account_file = self.config['credentials']['path'].as_filename()
-        self.credentials = Credentials.from_service_account_file(self.service_account_file, scopes=['https://www.googleapis.com/auth/drive'])
+        self.service_account_file = self.config['credentials']['path'].get(confuse.Optional(confuse.Path()))
+        service_account_json = self.config['credentials']['json'].get(confuse.Optional(str))
+        if self.service_account_file:
+            self.credentials = Credentials.from_service_account_file(self.service_account_file, scopes=['https://www.googleapis.com/auth/drive'])
+        elif service_account_json:
+            decoder = json.JSONDecoder()
+            service_account_info = decoder.decode(service_account_json)
+            self.credentials = Credentials.from_service_account_info(service_account_info, scopes=['https://www.googleapis.com/auth/drive'])
+        else:
+            raise Exception(f"no supported gdrive credentials config found")
+
         self.credentials.refresh(Request())
         self.service = build('drive', 'v3', credentials=self.credentials)
         self.base_folder_name = self.config['base_name'].get(str)
