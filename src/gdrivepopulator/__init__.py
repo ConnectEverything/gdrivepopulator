@@ -105,23 +105,23 @@ class Populator:
         checksum = file_digest(fh, lambda: sha1(usedforsecurity=False)).hexdigest()
         fh.seek(0)
 
-        file_metadata = {
-            'name': name
-        }
-
-        if parent_id is not None:
-            file_metadata['parents'] = [parent_id]
-        elif self.drive_id is not None:
-            file_metadata['parents'] = [self.drive_id]
-
-        if self.drive_id is not None:
-            file_metadata['driveId'] = [self.drive_id]
-
         media = MediaIoBaseUpload(fh, mimetype='text/plain')
 
         file = self.find_item(name=name, parent_id=parent_id)
         if file is None:
             # create the file
+            file_metadata = {
+                'name': name
+            }
+
+            if parent_id is not None:
+                file_metadata['parents'] = [parent_id]
+            elif self.drive_id is not None:
+                file_metadata['parents'] = [self.drive_id]
+
+            if self.drive_id is not None:
+                file_metadata['driveId'] = [self.drive_id]
+
             logger.debug(f'creating file: {file_metadata}')
             return self.service.files().create(body=file_metadata, fields='id', media_body=media, supportsAllDrives=True).execute()
         elif checksum == file['sha1Checksum']:
@@ -129,7 +129,7 @@ class Populator:
             return file
         else:
             # update file content
-            return self.service.files().update(fileId=file['id'], body=file_metadata, fields='id', media_body=media, supportsAllDrives=True).execute()
+            return self.service.files().update(fileId=file['id'], body={}, fields='id', media_body=media, supportsAllDrives=True).execute()
 
     def update_path(self, path, fh):
         p = Path(path)
