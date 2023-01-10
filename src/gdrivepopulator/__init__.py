@@ -129,7 +129,7 @@ class Populator:
             return file
         else:
             # update file content
-            return self.service.files().update(id=file['id'], body=file_metadata, fields='id', media_body=media, supportsAllDrives=True).execute()
+            return self.service.files().update(fileId=file['id'], body=file_metadata, fields='id', media_body=media, supportsAllDrives=True).execute()
 
     def update_path(self, path, fh):
         p = Path(path)
